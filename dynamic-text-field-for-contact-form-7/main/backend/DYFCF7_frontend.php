@@ -124,26 +124,28 @@ add_shortcode('DYFCF7_get_current_user', 'DYFCF7_get_current_user');
 function DYFCF7_get_custom_field($atts)
 {
 	$args = shortcode_atts( 
-	    array(
-	        'key' => '',
-	        'post_id' => -1,
-	    ), 
-	    $atts
+		array(
+			'key' => '',
+			'post_id' => -1,
+		), 
+		$atts
 	);
 	global $post;
-	// echo "<pre>";
-	// print_r($post);
-	// echo "</pre>";
-	//echo $args['key'];
-	$key = $args['key'];
-	if (!empty($key)) {
-		$val = get_post_meta($post->ID ,$key,true);
-	}else{
+	// Sanitize key and post_id
+	$key = isset($args['key']) ? sanitize_key($args['key']) : '';
+	$post_id = isset($args['post_id']) && is_numeric($args['post_id']) ? intval($args['post_id']) : -1;
+
+	// Determine which post ID to use
+	$target_post_id = $post_id > 0 ? $post_id : (isset($post->ID) ? intval($post->ID) : 0);
+
+	if (!empty($key) && $target_post_id > 0) {
+		$val = get_post_meta($target_post_id, $key, true);
+	} else {
 		$val = '';
 	}
-	
 
-	return $val;
+	// Optionally sanitize output (esc_html for output in HTML context)
+	return esc_html($val);
 }
 add_shortcode('DYFCF7_get_custom_field', 'DYFCF7_get_custom_field');
 
@@ -207,57 +209,41 @@ function DYFCF7_tag_generator_shortcodefield($contact_form, $args = ''){
 	$contact_form_tags = $wpcf7_contact_form->scan_form_tags();
 	$type = sanitize_text_field($args['id']);
 	?>
+	<header class="description-box">
+	    <h3>shortcodefield  form tag generator</h3>
+	</header> 
 	<div class="control-box">
+		<?php if($type == "shortcodefield"){ ?>
+			<fieldset>
+    			<legend>
+    				Field type
+    			</legend>
+    			<input type="hidden" data-tag-part="basetype" value="shortcodefield" >
+    			<label>
+				<input type="checkbox" data-tag-part="type-suffix" value="*">This is a required field.</label>
+    		</fieldset>
+		<?php } else{
+			?>
+			<input type="hidden" data-tag-part="basetype" value="shortcodehidden" >
+			<?php
+		}?>
 		<fieldset>
-			<table class="form-table">
-				<tbody>
-					<?php if($type == "shortcodefield"){ ?>
-						<tr>
-							<th scope="row"><?php echo esc_html( __( 'Field type', 'dynamic-text-field-for-contact-form-7' ) ); ?></th>
-							<td>
-								<fieldset>
-								<legend class="screen-reader-text"><?php echo esc_html( __( 'Field type', 'dynamic-text-field-for-contact-form-7' ) ); ?></legend>
-								<label><input type="checkbox" name="required" /> <?php echo esc_html( __( 'Required field', 'dynamic-text-field-for-contact-form-7' ) ); ?></label>
-								</fieldset>
-							</td>
-						</tr>
-					<?php } ?>
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-name' ); ?>"><?php echo esc_html( __( 'Name', 'dynamic-text-field-for-contact-form-7' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input type="text" name="name" class="tg-name oneline" id="<?php echo esc_attr( $args['content'] . '-name' ); ?>" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-id' ); ?>"><?php echo esc_html( __( 'Id attribute', 'dynamic-text-field-for-contact-form-7' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input type="text" name="id" class="idvalue oneline option" id="<?php echo esc_attr( $args['content'] . '-id' ); ?>" />
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-class' ); ?>"><?php echo esc_html( __( 'Class attribute', 'dynamic-text-field-for-contact-form-7' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input type="text" name="class" class="classvalue oneline option" id="<?php echo esc_attr( $args['content'] . '-class' ); ?>" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-values' ); ?>"><?php echo esc_html( __( 'dynamic text field', 'dynamic-text-field-for-contact-form-7' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input type="text" name="values" class="oneline" id="<?php echo esc_attr( $args['content'] . '-values' ); ?>" />
-							<?php _e( 'Add Here Any Shortcode', 'dynamic-text-field-for-contact-form-7' ); ?> <br>
+			<legend>Name</legend>
+			<input type="text" data-tag-part="name" pattern="[A-Za-z][A-Za-z0-9_\-]*">
+		</fieldset>
+		<fieldset>
+				<legend>Id</legend>
+				<input type="text" data-tag-part="option" data-tag-option="id:" value="">
+			</fieldset>
+			<fieldset>
+				<legend>Class</legend>
+				<input type="text" data-tag-part="option" data-tag-option="class:" value="" pattern="[A-Za-z0-9_\-\s]*" >
+			</fieldset>
+		<fieldset>
+			<legend>dynamic text field</legend>
+			
+			<textarea rows="3"  data-tag-part="value" ></textarea> <br>
+			<?php _e( 'Add Here Any Shortcode', 'dynamic-text-field-for-contact-form-7' ); ?> <br>
 							<?php _e( 'remove square brackets <code> [] </code> ' , 'dynamic-text-field-for-contact-form-7' ); ?> <br>
 							<?php _e( 'so ex.<code> [shortcode attribute=\'value\'] </code>  add like this  <code> shortcode attribute=\'value\' </code>', 'dynamic-text-field-for-contact-form-7' ); ?>
 							<?php _e( 'and on attribut value not use single Quotes not use double Quotes ', 'dynamic-text-field-for-contact-form-7' ); ?><br><br>
@@ -275,23 +261,20 @@ function DYFCF7_tag_generator_shortcodefield($contact_form, $args = ''){
 								// register shortcode<br>
 								add_shortcode(\'cityname\', \'cityname_demo_shortcode\');</code></strong>', 'dynamic-text-field-for-contact-form-7' ); ?><br><br>
 							<?php _e( '<code><strong>Ex :  shortcode = cityname, attribute = city, and value = any city name.<br><br>cityname city=\'surat\'<br><br>Return value in dynamic field is \'My city name is surat\'</strong></code>', 'dynamic-text-field-for-contact-form-7' ); ?>
-						</td>
-					</tr>
-				</tbody>
-			</table>	
 		</fieldset>
 	</div>
 
 	<div class="insert-box">
-		<input type="text" name="<?php echo esc_attr($type); ?>" class="tag code" readonly="readonly" onfocus="this.select()" />
-
-		<div class="submitbox">
-		<input type="button" class="button button-primary insert-tag" value="<?php echo esc_attr( __( 'Insert Tag', 'dynamic-text-field-for-contact-form-7' ) ); ?>" />
-		</div>
-
-		<br class="clear" />
-
-		<p class="description mail-tag"><label for="<?php echo esc_attr( $args['content'] . '-mailtag' ); ?>"><?php echo sprintf( esc_html( __( "To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.", 'dynamic-text-field-for-contact-form-7' ) ), '<strong><span class="mail-tag"></span></strong>' ); ?><input type="text" class="mail-tag code hidden" readonly="readonly" id="<?php echo esc_attr( $args['content'] . '-mailtag' ); ?>" /></label></p>
+		<div class="flex-container">
+			<input type="text" class="code" readonly="readonly" onfocus="this.select();" data-tag-part="tag">
+			<div class="submitbox">
+				<input type="button" class="button button-primary insert-tag" value="<?php echo esc_attr( __( 'Insert Tag', 'digital-signature-for-contact-form-7' ) ); ?>" />
+			</div>
+    	</div/>
+		<p class="mail-tag-tip">
+			<label for="<?php echo esc_attr( $args['content'] . '-mailtag' ); ?>"><?php echo sprintf( esc_html( __( "To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.", 'Dynamic Text Field For Contact Form 7' ) ), '<strong><span class="mail-tag"></span></strong>' ); ?>
+		    </label>
+		</p>
 	</div>
 	<?php
 }
@@ -302,7 +285,7 @@ add_action( 'wpcf7_admin_init', 'DYFCF7_add_tag_generator_shortcodefield', 18, 0
 function DYFCF7_add_tag_generator_shortcodefield() {
 	$tag_generator = WPCF7_TagGenerator::get_instance();
 	$tag_generator->add( 'shortcodefield', __( 'shortcodefield', 'dynamic-text-field-for-contact-form-7' ),
-		'DYFCF7_tag_generator_shortcodefield' );
+		'DYFCF7_tag_generator_shortcodefield' ,array('version'=>2));
 }
 
 
@@ -311,7 +294,7 @@ add_action( 'wpcf7_admin_init', 'DYFCF7_add_tag_generator_shortcodehidden', 18, 
 function DYFCF7_add_tag_generator_shortcodehidden() {
 	$tag_generator = WPCF7_TagGenerator::get_instance();
 	$tag_generator->add( 'shortcodehidden', __( 'shortcodehidden', 'dynamic-text-field-for-contact-form-7' ),
-		'DYFCF7_tag_generator_shortcodefield' );
+		'DYFCF7_tag_generator_shortcodefield' ,array('version'=>2) );
 }
 
 
