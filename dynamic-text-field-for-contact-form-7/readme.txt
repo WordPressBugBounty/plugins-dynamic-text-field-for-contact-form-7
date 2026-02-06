@@ -1,7 +1,7 @@
 === Dynamic Text Field For Contact Form 7 ===
 Tags: Dynamic text field for contact form 7, Dynamic hidden field for contact form 7 , text field and hidden field cf7, 
 Requires at least: 5.5
-Tested up to: 6.8.2
+Tested up to: 6.9
 Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html

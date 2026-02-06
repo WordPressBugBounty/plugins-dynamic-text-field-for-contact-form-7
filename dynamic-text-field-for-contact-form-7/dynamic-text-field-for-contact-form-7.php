@@ -2,7 +2,7 @@
 /**
 * Plugin Name: Dynamic text field for contact form 7
 * Description: This plugin allows Dynamic text and field for contact form 7
-* Version: 1.1
+* Version: 1.0
 * Copyright: 2023
 * Text Domain: dynamic-text-field-for-contact-form-7
 * Domain Path: /languages 
